@@ -2,6 +2,7 @@ package book.sample;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -50,19 +51,37 @@ public class MySqlDb {
         return records;
     }
 
-    public void deleteRecordById(String tableName, String primaryKey, Object recordId) throws SQLException {
+    public int deleteRecordById(String tableName, String recordField, Object recordValue) throws SQLException {
 
         String recordToDelete;
+        PreparedStatement pstmt = null;
 
-        if (recordId instanceof String) {
-            recordToDelete = "\'" + recordId + "\'";
-        } else {
-            recordToDelete = "" + recordId + "";
+        pstmt = buildDeleteStatement(conn, tableName, recordField);
+
+        if (recordField != null) {
+
+            if (recordValue instanceof String) {
+                pstmt.setString(1, recordValue.toString());
+
+            } else {
+                pstmt.setObject(1, recordValue);
+
+            }
         }
 
-        String sql = "DELETE FROM " + tableName + " WHERE " + primaryKey + "= " + recordToDelete;
-        Statement stmt = conn.createStatement();
-        stmt.executeUpdate(sql);
+        return pstmt.executeUpdate();
+
+    }
+
+    private PreparedStatement buildDeleteStatement(Connection connect, String tableName, String recordField) throws SQLException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE FROM ").append(tableName);
+
+        if (recordField != null) {
+            sql.append(" WHERE ").append(recordField).append(" = ?");
+        }
+
+        return connect.prepareStatement(sql.toString());
 
     }
 
@@ -74,9 +93,9 @@ public class MySqlDb {
                 "root",
                 "admin");
 
-        db.deleteRecordById("author", "author_name", "jigo patel");
+        int numberOfRecordsDeleted = db.deleteRecordById("author", "author_name", "david Patel");
+        System.out.println("Number of Records Deleted=" + numberOfRecordsDeleted);
         List<Map<String, Object>> records = db.findAllRecords("author");
-
         for (Map record : records) {
             System.out.println(record);
         }
