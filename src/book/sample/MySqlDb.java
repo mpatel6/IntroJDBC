@@ -3,19 +3,22 @@ package book.sample;
 import java.sql.*;
 import java.util.*;
 
-public class MySqlDb {
+public class MySqlDb implements DBStrategy {
 
     private Connection conn;
 
+    @Override
     public void openConnection(String driverClass, String url, String userName, String password) throws Exception {
         Class.forName(driverClass);
         conn = DriverManager.getConnection(url, userName, password);
     }
 
+    @Override
     public void closeConnection() throws SQLException {
         conn.close();
     }
 
+    @Override
     public List<Map<String, Object>> findAllRecords(String tableName) throws SQLException {
         List<Map<String, Object>> records = new ArrayList<>();
         String sql = "SELECT * FROM " + tableName;
@@ -33,6 +36,7 @@ public class MySqlDb {
         return records;
     }
 
+    @Override
     public int deleteRecordById(String tableName, String recordField, Object recordValue) throws SQLException {
         PreparedStatement pstmt = null;
         pstmt = buildDeleteStatement(conn, tableName, recordField);
@@ -55,6 +59,38 @@ public class MySqlDb {
         return connect.prepareStatement(sql.toString());
     }
 
+    @Override
+    public int updateRecord(String tableName, String recordWhereField, Object recordWhereValue, List<String> recordFields, List<Object> recordValues) throws SQLException {
+        //update author Set author_name = "Rosmund Pike", date_created = "1998-05-05" Where author_id = "13";
+
+        PreparedStatement pstmt = null;
+        pstmt = buildUpdateStatement(conn, tableName, recordWhereField, recordFields);
+        for (int i = 1; i <= recordFields.size(); i++) {
+            pstmt.setObject(i, recordValues.get(i - 1));
+            if (i == recordFields.size()) {
+                pstmt.setObject(recordFields.size() + 1, recordWhereValue);
+            }
+        }
+
+        return pstmt.executeUpdate();
+    }
+
+    private PreparedStatement buildUpdateStatement(Connection connect, String tableName, String recordWhereField, List<String> recordFields) throws SQLException {
+        StringBuilder sql = new StringBuilder("Update ");
+        sql.append(tableName).append(" SET ");
+
+        for (int i = 0; i < recordFields.size(); i++) {
+            sql.append(recordFields.get(i)).append(" = ").append("?");
+            if (i < recordFields.size() - 1) {
+                sql.append(",");
+            }
+        }
+        sql.append(" WHERE ").append(recordWhereField).append(" = ").append("?").append(";");
+        //System.out.println(sql.toString());
+        return connect.prepareStatement(sql.toString());
+    }
+
+    @Override
     public int insertRecord(String tableName, List<String> recordFields, List<Object> recordValues) throws SQLException {
         PreparedStatement pstmt = null;
         pstmt = buildInsertStatement(conn, tableName, recordFields);
@@ -62,6 +98,22 @@ public class MySqlDb {
             pstmt.setObject(i, recordValues.get(i - 1));
         }
         return pstmt.executeUpdate();
+        //        StringBuilder sql = new StringBuilder("Update ");
+//        sql.append(tableName).append(" SET ");
+//        
+//        for(int i=0; i<recordFields.size();i++){
+//            sql.append(recordFields.get(i)).append(" = \"").append(recordValues.get(i)).append("\" ");
+//            if(i< recordFields.size()-1){
+//                sql.append(",");
+//            }            
+//        }
+//        
+//        sql.append(" WHERE ").append(recordWhereField).append(" = \"").append(recordWhereValue).append("\";");  
+//        Statement stmt = conn.createStatement();
+//        
+//        
+//        System.out.println(sql.toString());
+//        return stmt.executeUpdate(sql.toString());
     }
 
     private PreparedStatement buildInsertStatement(Connection connect, String tableName, List<String> recordFields) throws SQLException {
@@ -84,7 +136,6 @@ public class MySqlDb {
         sql.append(");");
         //System.out.println("INSERRT SQL STATEMENT" + sql);
         return connect.prepareStatement(sql.toString());
-
     }
 
     public static void main(String[] args) throws Exception {
@@ -102,8 +153,11 @@ public class MySqlDb {
         List<String> recordFields = new ArrayList<>();
         recordFields.add("author_name");
         recordFields.add("date_created");
-        int updateQueryInt = db.insertRecord("author", recordFields, recordValues);
-        System.out.println("Number of Records Created=" + updateQueryInt);
+//        int updateQueryInt = db.insertRecord("author", recordFields, recordValues);
+//        System.out.println("Number of Records Created=" + updateQueryInt);
+
+        int udateRecordInt = db.updateRecord("author", "author_id", "12", recordFields, recordValues);
+        System.out.println("Number of Records updated=" + udateRecordInt);
 
         List<Map<String, Object>> records = db.findAllRecords("author");
         for (Map record : records) {
