@@ -5,7 +5,9 @@
  */
 package book.sample;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ import java.util.Map;
  *
  * @author Ankita
  */
-public class AuthorDAO {
+public class AuthorDAO implements AuthorDaoStrategy {
     
     private DBStrategy db;
     private String driverClass;
@@ -29,27 +31,60 @@ public class AuthorDAO {
         this.password = password;
     }
     
-    public int deleteRecordById(String tableName, String recordField, Object recordValue) throws Exception{
+    @Override
+    public int deleteRecordById(String recordField, Object recordValue) throws Exception{
         db.openConnection(driverClass, url, userName, password);
-        int noOfRecordDeleted = db.deleteRecordById(tableName, recordField, recordValue);
+        int noOfRecordDeleted = db.deleteRecordById("author", recordField, recordValue);
         db.closeConnection();
         return noOfRecordDeleted;
     }
     
-    public int insertRecord(String tableName, List<String> recordFields, List<Object> recordValues) throws Exception{
+    @Override
+    public int insertRecord( List<String> recordFields, List<Object> recordValues) throws Exception{
         db.openConnection(driverClass, url, userName, password);
-        int noOfRecordsInserted = db.insertRecord(tableName, recordFields, recordValues);
+        int noOfRecordsInserted = db.insertRecord("author", recordFields, recordValues);
         db.closeConnection();
         return noOfRecordsInserted;
     }
     
-    public int updateRecord(String tableName, String recordWhereField, Object recordWhereValue, List<String> recordFields, List<Object> recordValues) throws Exception{
+    @Override
+    public int updateRecord(String recordWhereField, Object recordWhereValue, List<String> recordFields, List<Object> recordValues) throws Exception{
       db.openConnection(driverClass, url, userName, password);
-        int noOfRecordsUpdated = db.updateRecord(tableName, recordWhereField,recordWhereValue,recordFields, recordValues);
+        int noOfRecordsUpdated = db.updateRecord("author", recordWhereField,recordWhereValue,recordFields, recordValues);
         db.closeConnection();
         return noOfRecordsUpdated;  
     }
     
+ 
+    @Override
+    public List<Author> findAllAuthors() throws SQLException, Exception{
+       db.openConnection(driverClass, url, userName, password);
+       List<Author> authorList = new ArrayList<>();
+       
+       List<Map<String, Object>> rawData = new ArrayList<>();
+       rawData = db.findAllRecords("author");
+       
+       for(Map rawRec:rawData){
+           Author author = new Author();
+            Object obj = rawRec.get("author_id");
+            author.setAuthorId(Integer.parseInt(obj.toString()));
+            
+            String authorName = rawRec.get("author_name") == null ? "" : rawRec.get("author_name").toString();
+            author.setAuthorName(authorName);
+            
+            obj = rawRec.get("date_created");
+            Date dateCreated = (Date)rawRec.get("date_created");
+            author.setDateCreated(dateCreated);
+            authorList.add(author);
+           
+       }
+       
+       
+         db.closeConnection();      
+       
+       
+       return authorList;
+    }
     
     
     public static void main(String[] args) throws Exception {
@@ -72,13 +107,16 @@ public class AuthorDAO {
 //        int noOfRecordsInserted = dao.insertRecord("author",recordFields,recordValues);
 //        System.out.println("Number of Records Added = " + noOfRecordsInserted);
         
-        int noOfRecordsUpdated = dao.updateRecord("author","author_id","12",recordFields,recordValues);
-        System.out.println("Number of Records Added = " + noOfRecordsUpdated);
+//        int noOfRecordsUpdated = dao.updateRecord("author","author_id","12",recordFields,recordValues);
+//        System.out.println("Number of Records Added = " + noOfRecordsUpdated);
 
-//        List<Map<String, Object>> records = db.findAllRecords("author");
-//        for (Map record : records) {
-//            System.out.println(record);
-//        }
+        
+        List<Author> authorList = new ArrayList<>();
+        authorList = dao.findAllAuthors();
+        
+        for (Author author : authorList) {
+            System.out.println(author);
+        }
 
     }
     

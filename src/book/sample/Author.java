@@ -18,6 +18,11 @@ public class Author {
     private Integer authorId;
     private Date dateCreated;
 
+    public Author() {
+    }
+
+    
+    
     public Author(Integer authorId, String authorName, Date dateCreated) {
         this.authorName = authorName;
         this.authorId = authorId;
