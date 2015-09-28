@@ -5,7 +5,7 @@
  */
 package book.sample;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -19,6 +19,11 @@ public class Author {
     private Date dateCreated;
 
     public Author() {
+    }
+
+    public Author(String authorName, Date dateCreated) {
+        this.authorName = authorName;
+        this.dateCreated = dateCreated;
     }
 
     

@@ -18,8 +18,8 @@ public interface AuthorDaoStrategy {
 
     List<Author> findAllAuthors() throws SQLException, Exception;
 
-    int insertRecord(List<String> recordFields, List<Object> recordValues) throws Exception;
+    int insertRecord(Author author) throws Exception;
 
-    int updateRecord(String recordWhereField, Object recordWhereValue, List<String> recordFields, List<Object> recordValues) throws Exception;
+    int updateRecord(Author author) throws Exception;
     
 }

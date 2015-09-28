@@ -98,22 +98,7 @@ public class MySqlDb implements DBStrategy {
             pstmt.setObject(i, recordValues.get(i - 1));
         }
         return pstmt.executeUpdate();
-        //        StringBuilder sql = new StringBuilder("Update ");
-//        sql.append(tableName).append(" SET ");
-//        
-//        for(int i=0; i<recordFields.size();i++){
-//            sql.append(recordFields.get(i)).append(" = \"").append(recordValues.get(i)).append("\" ");
-//            if(i< recordFields.size()-1){
-//                sql.append(",");
-//            }            
-//        }
-//        
-//        sql.append(" WHERE ").append(recordWhereField).append(" = \"").append(recordWhereValue).append("\";");  
-//        Statement stmt = conn.createStatement();
-//        
-//        
-//        System.out.println(sql.toString());
-//        return stmt.executeUpdate(sql.toString());
+
     }
 
     private PreparedStatement buildInsertStatement(Connection connect, String tableName, List<String> recordFields) throws SQLException {
@@ -134,7 +119,7 @@ public class MySqlDb implements DBStrategy {
 
         }
         sql.append(");");
-        //System.out.println("INSERRT SQL STATEMENT" + sql);
+
         return connect.prepareStatement(sql.toString());
     }
 
